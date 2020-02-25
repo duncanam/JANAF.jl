@@ -1,0 +1,4 @@
+name = "JANAF"
+uuid = "7e6089bf-f5b2-4c32-a5ba-c4cd2b6307dd"
+authors = ["duncanam <duncan.mcgough@colorado.edu>"]
+version = "0.1.0"

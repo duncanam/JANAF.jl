@@ -1,2 +1,7 @@
 # JANAF.jl
-A Julia interface for the NIST-JANAF Thermochemical Tables
+A Julia interface for NIST-JANAF Thermochemical Tables
+
+## Installation 
+
+
+## Usage
