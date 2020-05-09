@@ -8,10 +8,9 @@ JANAF.jl is a Julia package to assist with thermochemical property lookup. It lo
 I welcome pull requests and assistance from people who may actually use this, as this primarily came out of a need during a homework assignment. It is not polished. 
 
 ## Installation 
-* Install JANAF.jl with:
-```julia
-using Pkg
-Pkg.clone("https://github.com/duncanam/JANAF.jl.git")
+* Install JANAF.jl by first entering package mode in the REPL with `]`, then run:
+```julia-repl
+pkg> add https://github.com/duncanam/JANAF.jl.git
 ```
 * Next, go to [https://janaf.nist.gov/](https://janaf.nist.gov/) and find the desired gas(es) you'd like to work with, such as [gaseous water](https://janaf.nist.gov/tables/H-064.html). 
 * Scroll to the bottom of the page and right click the "Download table" button, and select "Save Link As..." and save the table to the desired JANAF folder that will contain all the tables. This is only needed once per new specie. 
