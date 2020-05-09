@@ -2,7 +2,7 @@ module JANAF
 using CSV # used for reading in JANAF tables 
 
 # Export useful functions
-export JanafDict
+export JanafDict, Cp, S, Hs, Hf, Gf, Kf
 
 """
     JanafDict(path,specie_array)
@@ -14,6 +14,8 @@ a dictionary in memory.
 Tables are in `.txt` format, downloaded each from:
 https://janaf.nist.gov/ 
 
+Standard reference states are at 298.15K and 0.1MPa. 
+
 # Examples
 Read in N2 and O2 JANAF JANAF tables:
 ```julia-repl
@@ -22,22 +24,28 @@ julia> specie_array = ["N2","O2"];
 julia> jd = JanafDict(path,specie_array);
 ```
 """
-function JanafDict(path::String,specie_array)
+function JanafDict(path::String,specie_array::Array{String,1})
 	# Initialize dictionary 
 	jdict = Dict()
 
 	# TODO 
 	# Need to find a way to convert user-written inputs to 
-	# the odd JANAF format, i.e. N-023 vs N2. 
+	# the odd JANAF title format, i.e. N-023 vs N2. 
 
 	# Loop through each specie 
 	for specie in specie_array
 		# Read in data, convert to array
 		data = Array(CSV.read(path*specie*".txt",delim='\t',ignorerepeated=true,header=2))
 
-		# Convert "INFINITE" string and create numeric array 
-		data[1,4] = "1.0e12" # create "infinity" for interpolation 
-		data[:,4] = parse.(Float64,data[:,4]) # convert strings to floats for vector
+		# Loop through thermo quantities
+		for i=2:8
+			# Convert "INFINITE" string and create numeric array 
+			if data[1,i] == "INFINITE"
+				data[1,i] = "1.0e12" # create "infinity" for interpolation 
+				data[:,i] = parse.(Float64,data[:,i]) # convert strings to floats for vector
+				
+			end # end comparison if 
+		end # end loop through thermo quantities
 
 		# Typecast array to float 
 		data = Float64.(data)
@@ -100,7 +108,116 @@ function interp(table::Array{Float64,2}, T::Number)
 	# Return linear interpolation between bins at desired temperature
     return table[binlow,2] + (table[binhigh,2] - table[binlow,2])/(table[binhigh,1] - table[binlow,1])*(T - table[binlow,1])
 
-end 
+end # end interp()
+
+"""
+    Cp(jd,specie,T)
+
+Specific heat of `specie` at constant pressure 
+at `T` temperature in kelvin. Interpolates JanafDict
+given as `jd`. Returns specific heat in J/K/mol.
+
+# Example 
+```julia-repl
+julia> Cp(jd,"N2",405)
+29.2628
+```
+"""
+function Cp(jd,specie::String,T::Number)
+	return interp(jd[specie][:,1:2],T)
+end # end Cp()
+
+"""
+   S(jd,specie,T)
+
+Entropy of `specie` at `T` temperature in kelvin. 
+Interpolates JanafDict given as `jd`. Returns entropy 
+in J/K/mol.
+
+# Example 
+```julia-repl
+julia> S(jd,"N2",802)
+221.0918
+```
+"""
+function S(jd,specie::String,T::Number)
+	return interp(jd[specie][:,1:2:3],T)
+end # end S()
+
+"""
+   Hs(jd,specie,T)
+
+Sensible enthalpy of `specie` at `T` temperature 
+in kelvin. Interpolates JanafDict given as `jd`. 
+Returns sensible enthalpy in kJ/mol. In JANAF 
+table as H-H0(Tr). 
+
+# Example 
+```julia-repl
+julia> Hs(jd,"N2",506)
+6.08998
+```
+"""
+function Hs(jd,specie::String,T::Number)
+	return interp(jd[specie][:,1:4:5],T)
+end # end Hs()
+
+"""
+   Hf(jd,specie,T)
+
+Standard enthalpy of formation of `specie` at 
+`T` temperature in kelvin. Interpolates 
+JanafDict given as `jd`. Returns formation 
+enthalpy in kJ/mol. In JANAF table as ΔfH0.
+
+# Example 
+```julia-repl
+julia> Hf(jd,"H2O",802)
+-245.9564
+```
+"""
+function Hf(jd,specie::String,T::Number)
+	return interp(jd[specie][:,1:5:6],T)
+end # end Hf()
+
+"""
+   Gf(jd,specie,T)
+
+Standard Gibbs free energy of formation of 
+`specie` at `T` temperature in kelvin. 
+Interpolates JanafDict given as `jd`. Returns 
+formation enthalpy in kJ/mol. In JANAF table 
+as ΔfG0.
+
+# Example 
+```julia-repl
+julia> Gf(jd,"H2O",370)
+-225.2807
+```
+"""
+function Gf(jd,specie::String,T::Number)
+	return interp(jd[specie][:,1:6:7],T)
+end # end Gf()
+
+"""
+   Kf(jd,specie,T)
+
+Equilibrium constant of `specie` at `T` 
+temperature in kelvin. Interpolates JanafDict 
+given as `jd`. Returns equilibrium constant in 
+kJ/mol. In JANAF table as log(Kf), and this 
+function returns Kf. 
+
+# Example 
+```julia-repl
+julia> Kf(jd,"H2O",623)
+8.506090518593942e17
+```
+"""
+function Kf(jd,specie::String,T::Number)
+	tmp = interp(jd[specie][:,1:7:8],T)
+	return 10^tmp
+end # end Kf()
 
 
 end # module
