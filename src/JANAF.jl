@@ -1,11 +1,26 @@
 module JANAF
 using CSV # used for reading in JANAF tables 
 
-
-greet() = print("Hello World!")
+# Export useful functions
+export JanafDict
 
 """
-Read in function
+    JanafDict(path,specie_array)
+
+Read in each specie in `specie_array` located in
+JANAF table folder `path`, and place tables into 
+a dictionary in memory. 
+
+Tables are in `.txt` format, downloaded each from:
+https://janaf.nist.gov/ 
+
+# Examples
+Read in N2 and O2 JANAF JANAF tables:
+```julia-repl
+julia> path = "/my/absolute/path/";
+julia> specie_array = ["N2","O2"];
+julia> jd = JanafDict(path,specie_array);
+```
 """
 function JanafDict(path::String,specie_array)
 	# Initialize dictionary 
@@ -46,7 +61,6 @@ interest, `interp(table,T)` will interpolate `table[:,2]`
 using the input `T` via a binary search and linear 
 interpolation between the nearest bins in the table. 
 """
-# CREATE INTERPOLATION FUNCTION FOR TABLES
 function interp(table::Array{Float64,2}, T::Number)
     low::Int64 = 1 # initialize low index
     high::Int64 = size(table,1) # initialize high index
@@ -83,6 +97,7 @@ function interp(table::Array{Float64,2}, T::Number)
         binhigh = low # set low bound to the higher bin
     end 
 
+	# Return linear interpolation between bins at desired temperature
     return table[binlow,2] + (table[binhigh,2] - table[binlow,2])/(table[binhigh,1] - table[binlow,1])*(T - table[binlow,1])
 
 end 
