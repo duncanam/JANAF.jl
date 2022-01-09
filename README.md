@@ -48,7 +48,7 @@ path = "/home/user/janaf/"
 species_list = ["N2","H2O"]
 
 # Define JANAF dictionary 
-jd = JanafDictionary(path,species_list)
+jd = JanafDict(path,species_list)
 
 # Grab specific heat of water at a desired
 #   temperature, T = 457.2 K
